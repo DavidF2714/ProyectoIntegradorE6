@@ -26,7 +26,9 @@ model = nn.Sequential(
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-model.load_state_dict(torch.load("LSM-V2/hand_landmarks_modelv2.pt"))
+model.load_state_dict(
+    torch.load("LSM-V2/hand_landmarks_modelv2.pt", map_location=device)
+)
 model = model.to(device)
 model.eval()
 
