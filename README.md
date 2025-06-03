@@ -3,6 +3,8 @@
 Este proyecto implementa un sistema de visión artificial para el reconocimiento de la Lengua de Señas Mexicana (LSM) utilizando técnicas avanzadas de aprendizaje profundo. El sistema es capaz de interpretar gestos manuales en tiempo real a través de una aplicación web con comunicación mediante sockets.
 
 ## Descripción del Proyecto
+La solución desarrollada es un sistema de reconocimiento de Lengua de Señas Mexicana (LSM) que combina visión por computadora y aprendizaje profundo. El núcleo del proyecto consiste en un modelo de deep learning que procesa landmarks de manos (63 puntos espaciales) para clasificar gestos en 26 categorías de LSM. La aplicación incluye funcionalidades de aumento de datos para mejorar el modelo (rotaciones, escalados, ruido), procesamiento de imágenes para extracción de landmarks, y un pipeline completo de entrenamiento y validación del modelo. El componente web ofrece predicciones en tiempo real mediante WebSockets, gestión de sesiones de usuario y almacenamiento de registros de predicciones con sus videos asociados.
+
 Este proyecto fue desarrollado como trabajo de titulación para la carrera de Ingeniería en Tecnologías Computacionales (ITC) en el Tecnológico de Monterrey. El sistema utiliza redes neuronales profundas para reconocer y clasificar gestos de la Lengua de Señas Mexicana, permitiendo:
 
 - **Reconocimiento en tiempo real** mediante una aplicación web con comunicación por sockets
