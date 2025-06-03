@@ -1,20 +1,61 @@
-# ProyectoIntegradorE6
-# Mexican Sign Language Recognition using Computer Vision
-This project aims to develop a computer vision model to recognize and analyze Mexican Sign Language (Lengua de Señas Mexicana, LSM). By leveraging advanced deep learning techniques, we aim to create an efficient and accurate system that can interpret LSM gestures in real-time, enhancing communication for the deaf and hard-of-hearing community.
+# Reconocimiento de Lengua de Señas Mexicana (LSM) mediante Visión Artificial
 
-## Features
-Gesture Recognition: Identify and classify various signs from LSM using a convolutional neural network (CNN).
-Real-Time Analysis: Implement real-time recognition capabilities using webcam input.
-Dataset Utilization: Created our own LSM dataset with the helo of ITESM students.
-User-Friendly Interface: Develop an intuitive interface that displays recognized signs and their meanings.
-Performance Metrics: Evaluate model performance using accuracy.
+Este proyecto implementa un sistema de visión artificial para el reconocimiento de la Lengua de Señas Mexicana (LSM) utilizando técnicas avanzadas de aprendizaje profundo. El sistema es capaz de interpretar gestos manuales en tiempo real a través de una aplicación web con comunicación mediante sockets.
 
-## Technologies Used
-- Python
+## Descripción del Proyecto
+Este proyecto fue desarrollado como trabajo de titulación para la carrera de Ingeniería en Tecnologías Computacionales (ITC) en el Tecnológico de Monterrey. El sistema utiliza redes neuronales profundas para reconocer y clasificar gestos de la Lengua de Señas Mexicana, permitiendo:
+
+- **Reconocimiento en tiempo real** mediante una aplicación web con comunicación por sockets
+- **Gestión de sesiones** de usuarios
+- **Almacenamiento de videos** con las predicciones realizadas
+- **Visualización de resultados** con superposición de puntos de referencia
+
+## Características Técnicas
+- **Extracción de landmarks**: Detección de 21 puntos clave en la mano usando MediaPipe
+- **Aumento de datos**: Técnicas avanzadas para mejorar la generalización del modelo:
+  - Volteo horizontal
+  - Rotación aleatoria (±15°)
+  - Escalado (80-120%)
+  - Traslación (±5%)
+  - Adición de ruido gaussiano
+- **Modelo de aprendizaje profundo**:
+  - Arquitectura de 4 capas densas (512-256-128-26 neuronas)
+  - Batch normalization y dropout para regularización
+- **Entrenamiento optimizado**:
+  - Usando PyTorch Lightning
+  - Early stopping con paciencia de 5 épocas
+  - Registro de métricas (pérdida y precisión)
+- **Aplicación Web**:
+  - Comunicación en tiempo real mediante WebSockets
+  - Almacenamiento de sesiones y videos
+  - Visualización de predicciones
+
+### Funcionalidades de la aplicación web
+1. **Conexión en tiempo real** mediante WebSockets
+2. **Captura de video** desde la cámara del usuario
+3. **Visualización de predicciones** superpuestas en el video
+4. **Gestión de sesiones**:
+   - Inicio/cierre de sesión
+   - Almacenamiento de videos predictivos
+   - Historial de predicciones
+5. **Panel de resultados**:
+   - Gráficos de precisión del modelo
+   - Visualización de landmarks
+   - Reproducción de videos almacenados
+
+## Licencia
+Este proyecto está bajo la Licencia MIT. Consulta el archivo [LICENSE](LICENSE) para más detalles.
+
+## Créditos
+Este proyecto fue desarrollado como trabajo de titulación para la carrera de Ingeniería en Tecnologías Computacionales en el Tecnológico de Monterrey.
+
+**Tecnologías utilizadas**:
+- PyTorch & PyTorch Lightning
+- MediaPipe
 - OpenCV
-- PyTorch
-- NumPy
-- Matplotlib
+- Flask & SocketIO
+- Pandas & Scikit-learn
 
-## License
-This project is licensed under the MIT License. See the LICENSE file for details.
+**Desarrolladores**: Sergio Zuckermann, David Flores Becerril, Santtiago Benítez Pérez, Santiago Tena Zozaya
+**Institución**: Tecnológico de Monterrey, Campus Santa Fe
+**Año**: 2025
