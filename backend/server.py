@@ -11,6 +11,10 @@ from fastapi import FastAPI, WebSocket
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 
+from fastapi import FastAPI, HTTPException, Depends
+from pydantic import BaseModel
+from auth import hash_password, verify_password, create_access_token
+
 app = FastAPI()
 
 app.add_middleware(
@@ -89,3 +93,25 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         print(f"Error: {e}")
         await websocket.close()
+
+#auth
+fake_users_db = {}
+
+class User(BaseModel):
+    username: str
+    password: str
+
+@app.post("/signup")
+def signup(user: User):
+    if user.username in fake_users_db:
+        raise HTTPException(status_code=400, detail="Username already exists")
+    fake_users_db[user.username] = hash_password(user.password)
+    return {"msg": "User created successfully"}
+
+@app.post("/signin")
+def signin(user: User):
+    hashed = fake_users_db.get(user.username)
+    if not hashed or not verify_password(user.password, hashed):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    token = create_access_token({"sub": user.username})
+    return {"access_token": token, "token_type": "bearer"}
