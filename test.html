@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test LSM WebSocket</title>
+</head>
+<body>
+  <video id="video" width="320" autoplay></video>
+  <p id="output">Esperando...</p>
+
+  <script>
+    const socket = new WebSocket("ws://localhost:8000/ws");
+
+    socket.onmessage = (event) => {
+      document.getElementById("output").innerText = "Predicción: " + event.data;
+    };
+
+    const video = document.getElementById("video");
+
+    navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+      video.srcObject = stream;
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      setInterval(() => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            socket.send(reader.result);
+          };
+          reader.readAsDataURL(blob);
+        }, "image/jpeg");
+      }, 200); // 5 FPS aprox.
+    });
+  </script>
+</body>
+</html>
