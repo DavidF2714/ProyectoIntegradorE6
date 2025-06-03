@@ -1,0 +1,3 @@
+input_size: 63
+lr: 0.001
+num_classes: 26
