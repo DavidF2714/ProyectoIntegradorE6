@@ -33,14 +33,24 @@ export default function Header() {
           <nav className="hidden md:flex md:grow">
             <ul className="flex grow justify-end flex-wrap items-center">
               <li>
-                <Link href="#About" className="font-medium hover:text-gray-500 px-4 py-3 flex items-center transition duration-150 ease-in-out">Acerca de</Link>
+                <Link href="/#About" className="font-medium hover:text-gray-500 px-4 py-3 flex items-center transition duration-150 ease-in-out">Acerca de</Link>
               </li>
               <li>
-                <Link href="#Overview" className="font-medium hover:text-gray-500 px-4 py-3 flex items-center transition duration-150 ease-in-out">Lenguaje de Señas Mexicano</Link>
+                <Link href="/#Overview" className="font-medium hover:text-gray-500 px-4 py-3 flex items-center transition duration-150 ease-in-out">Lenguaje de Señas Mexicano</Link>
               </li>
               <li>
-                <Link href="#predictionTool" className="font-medium hover:text-gray-500 px-4 py-3 flex items-center transition duration-150 ease-in-out">Herramienta de predicción</Link>
+                <Link href="/#predictionTool" className="font-medium hover:text-gray-500 px-4 py-3 flex items-center transition duration-150 ease-in-out">Herramienta de predicción</Link>
               </li>
+              {!loading && token && (
+              <li>
+                <Link
+                  href="/spellTool"
+                  className="font-medium hover:text-gray-500 px-4 py-3 flex items-center transition duration-150 ease-in-out"
+                >
+                  Aprende Jugando
+                </Link>
+              </li>
+              )}
 
               {/* 👇 Mostrar botón según autenticación */}
               {token ? (

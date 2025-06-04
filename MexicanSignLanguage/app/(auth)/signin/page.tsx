@@ -17,17 +17,16 @@ export default function SignIn() {
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault()
   try {
-    // const res = await axios.post('http://localhost:8000/signin', {
-    //   username,
-    //   password,
-    // })
+    const res = await axios.post('http://localhost:8000/signin', {
+      username,
+      password,
+    })
 
-    // console.log('Respuesta backend:', res.data)
-    // login(res.data.access_token) // Setea el token en el contexto
-    login("eyuwiwee")
+    console.log('Respuesta backend:', res.data)
+    login(res.data.access_token) // Setea el token en el contexto
 
     console.log('Token seteado, redirigiendo...')
-    router.push('/nextstep')
+    router.push('/spellTool')
     // Espera un ciclo de render antes de redirigir
     setTimeout(() => {
        window.location.reload()

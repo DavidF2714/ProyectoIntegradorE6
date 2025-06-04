@@ -62,6 +62,7 @@ export default function HandPredictor() {
 
 return (
   <div
+    id="predictionTool"
     style={{
       marginTop: "0",
       display: "flex",
