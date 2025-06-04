@@ -63,26 +63,23 @@ export default function HandPredictor() {
 return (
   <div
     style={{
-      marginTop: "0",
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      height: "85vh",
-      backgroundColor: "#f9fafb", // fondo general claro
+      height: "40vh",
+      paddingBottom: "40vh",
+      paddingTop: "20vh"
     }}
   >
-    <h2 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
-      Predicción: <span style={{ color: "#16a34a" }}>{prediction}</span>
-    </h2>
 
     {/* Contenedor del borde */}
     <div
       style={{
-        border: "2px solid #3b82f6", // borde azul delgado
+        border: "2px solid #5d5dff",
         borderRadius: "12px",
         padding: "0",
-        backgroundColor: "transparent", // fondo transparente
+        backgroundColor: "black", 
         boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
       }}
     >
@@ -91,14 +88,17 @@ return (
         autoPlay
         muted
         playsInline
-        width={720}
+        width={1090}
         style={{
           borderRadius: "10px",
           display: "block",
-          backgroundColor: "transparent", // fondo transparente
+          backgroundColor: "transparent",
         }}
       />
     </div>
+        <h2 style={{ fontSize: "1.9rem", marginTop: "0.8rem", fontWeight:"bold" }}>
+          Letra: <span style={{ color: "#5d5dff" }}>{prediction}</span>
+        </h2>
   </div>
 );
 

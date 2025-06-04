@@ -10,9 +10,9 @@ export default function HomePage() {
   return (
     <>
       <MainHeader />
+      <PredictionTool />
       <About />
       <Overview />
-      <PredictionTool />
     </>
   )
 }
