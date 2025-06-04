@@ -85,18 +85,29 @@ El sistema es una aplicación web conectada a un backend en FastAPI + SocketIO, 
 
 ---
 
-## 4. Requerimientos no funcionales
 
-| ID   | Tipo                | Descripción                                                                                                                            |
-| ---- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |                                                                                |
-| RNF1 | Disponibilidad      | El sistema debe estar disponible al menos el **99% del tiempo**.                                                                       |
-| RNF2 | Seguridad           | El sistema debe proteger los datos del usuario mediante **JWT**.                                                                       |
-| RNF3 | Mantenibilidad      | El sistema debe tener una arquitectura modular que permita modificar o actualizar el modelo de reconocimiento sin afectar el frontend. |
-| RNF4 | Portabilidad        | El sistema debe funcionar correctamente en **navegadores**.                                                                            |
-| RNF5 | Usabilidad          | La interfaz debe ser intuitiva y permitir al usuario promedio completar una colección en menos de **2 minutos**.                       |
-| RNF6 | Tolerancia a fallos | El sistema debe ser capaz de recuperarse automáticamente de interrupciones de red de hasta **20 segundos**.                            |
+### 4. Requerimientos no funcionales
+
+* **RNF1 - Disponibilidad:**
+  El sistema debe estar disponible al menos el **99% del tiempo**.
+
+* **RNF2 - Seguridad:**
+  El sistema debe proteger los datos del usuario mediante **JWT**.
+
+* **RNF3 - Mantenibilidad:**
+  El sistema debe tener una arquitectura modular que permita modificar o actualizar el modelo de reconocimiento sin afectar el frontend.
+
+* **RNF4 - Portabilidad:**
+  El sistema debe funcionar correctamente en **navegadores**.
+
+* **RNF5 - Usabilidad:**
+  La interfaz debe ser intuitiva y permitir al usuario promedio completar una colección en menos de **2 minutos**.
+
+* **RNF6 - Tolerancia a fallos:**
+  El sistema debe ser capaz de recuperarse automáticamente de interrupciones de red de hasta **20 segundos**.
 
 ---
+
 
 ## 5. Restricciones
 
