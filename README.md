@@ -9,7 +9,7 @@ Este proyecto fue desarrollado como trabajo de titulación para la carrera de In
 
 - **Reconocimiento en tiempo real** mediante una aplicación web con comunicación por sockets
 - **Gestión de sesiones** de usuarios
-- **Almacenamiento de videos** con las predicciones realizadas
+- **Almacenamiento de colecciones** con las predicciones realizadas
 - **Visualización de resultados** con superposición de puntos de referencia
 
 ## Características Técnicas
@@ -29,21 +29,19 @@ Este proyecto fue desarrollado como trabajo de titulación para la carrera de In
   - Registro de métricas (pérdida y precisión)
 - **Aplicación Web**:
   - Comunicación en tiempo real mediante WebSockets
-  - Almacenamiento de sesiones y videos
+  - Almacenamiento de sesiones y colecciones
   - Visualización de predicciones
 
 ### Funcionalidades de la aplicación web
 1. **Conexión en tiempo real** mediante WebSockets
-2. **Captura de video** desde la cámara del usuario
+2. **Captura de fotografías** desde la cámara del usuario
 3. **Visualización de predicciones** superpuestas en el video
 4. **Gestión de sesiones**:
    - Inicio/cierre de sesión
-   - Almacenamiento de videos predictivos
+   - Almacenamiento de colecciones
    - Historial de predicciones
 5. **Panel de resultados**:
-   - Gráficos de precisión del modelo
-   - Visualización de landmarks
-   - Reproducción de videos almacenados
+   - Visualización de colecciones
 
 ## Licencia
 Este proyecto está bajo la Licencia MIT. Consulta el archivo [LICENSE](LICENSE) para más detalles.
@@ -57,6 +55,12 @@ Este proyecto fue desarrollado como trabajo de titulación para la carrera de In
 - OpenCV
 - Flask & SocketIO
 - Pandas & Scikit-learn
+- Uvicorn
+- Nginx
+- Docker
+- NextJs
+- MongoDB
+- React
 
 **Desarrolladores**: Sergio Zuckermann, David Flores Becerril, Santtiago Benítez Pérez, Santiago Tena Zozaya
 **Institución**: Tecnológico de Monterrey, Campus Santa Fe
