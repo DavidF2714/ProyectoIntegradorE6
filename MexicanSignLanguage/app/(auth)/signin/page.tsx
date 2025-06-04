@@ -17,19 +17,21 @@ export default function SignIn() {
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault()
   try {
-    const res = await axios.post('http://localhost:8000/signin', {
-      username,
-      password,
-    })
+    // const res = await axios.post('http://localhost:8000/signin', {
+    //   username,
+    //   password,
+    // })
 
-    console.log('Respuesta backend:', res.data)
-    login(res.data.access_token) // Setea el token en el contexto
+    // console.log('Respuesta backend:', res.data)
+    // login(res.data.access_token) // Setea el token en el contexto
+    login("eyuwiwee")
 
+    console.log('Token seteado, redirigiendo...')
+    router.push('/nextstep')
     // Espera un ciclo de render antes de redirigir
     setTimeout(() => {
-      console.log('Token seteado, redirigiendo...')
-      router.push('/nextstep')
-    }, 0)
+       window.location.reload()
+    }, 100)
     
   } catch (err: any) {
     setError('Credenciales inválidas')

@@ -7,6 +7,8 @@ import {
   useState,
   ReactNode
 } from 'react'
+import { useRouter } from 'next/navigation'
+
 
 interface AuthContextType {
   token: string | null
@@ -20,6 +22,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
     const savedToken = localStorage.getItem('token')
@@ -31,13 +34,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   function login(newToken: string) {
-    localStorage.setItem('token', newToken)
-    setToken(newToken)
+    if(newToken) {
+      localStorage.setItem('token', newToken)
+      setToken(newToken)
+    }
   }
 
   function logout() {
     localStorage.removeItem('token')
     setToken(null)
+    router.push('/')
   }
 
   return (
