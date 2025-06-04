@@ -5,28 +5,36 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import axios from 'axios'
+import { useAuth } from '@/context/AuthContext'
 
 export default function SignIn() {
   const router = useRouter()
+  const { login } = useAuth()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      const res = await axios.post('http://localhost:8000/signin', {
-        username: username,
-        password: password,
-      })
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  try {
+    const res = await axios.post('http://localhost:8000/signin', {
+      username,
+      password,
+    })
 
-      localStorage.setItem('token', res.data.access_token)
-      router.push('/dashboard') // redirige al home privado
-    } catch (err: any) {
-      setError('Invalid credentials')
-    }
+    console.log('Respuesta backend:', res.data)
+    login(res.data.access_token) // Setea el token en el contexto
+
+    // Espera un ciclo de render antes de redirigir
+    setTimeout(() => {
+      console.log('Token seteado, redirigiendo...')
+      router.push('/nextstep')
+    }, 0)
+    
+  } catch (err: any) {
+    setError('Credenciales inválidas')
   }
-
+}
   return (
     <section className="relative">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">

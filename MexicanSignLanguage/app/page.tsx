@@ -1,14 +1,18 @@
+// app/page.tsx
 'use client'
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import MainHeader from '@/components/MainHeader'
+import About from '@/components/About'
+import Overview from '@/components/Overview'
+import PredictionTool from '@/components/ImagePredictor'
 
-export default function Home() {
-  const router = useRouter()
-
-  useEffect(() => {
-    router.push('/signin')
-  }, [router])
-
-  return null
+export default function HomePage() {
+  return (
+    <>
+      <MainHeader />
+      <About />
+      <Overview />
+      <PredictionTool />
+    </>
+  )
 }

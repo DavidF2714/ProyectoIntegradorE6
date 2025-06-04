@@ -1,20 +1,18 @@
-// app/layout.tsx
 import './css/style.css'
 import { Inter, Architects_Daughter } from 'next/font/google'
-import Header from '@/components/ui/header'
-import { AuthProvider } from '@/context/AuthContext'  // 👈 Importa el provider
+import ClientLayout from './client-layout'  // importas el layout cliente
 
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
-  display: 'swap'
+  display: 'swap',
 })
 
 const architects_daughter = Architects_Daughter({
   subsets: ['latin'],
   variable: '--font-architects-daughter',
   weight: '400',
-  display: 'swap'
+  display: 'swap',
 })
 
 export const metadata = {
@@ -29,13 +27,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${architects_daughter.variable} font-inter antialiased bg-gray-900 text-gray-200 tracking-tight`}>
-        <AuthProvider> {/* 👈 Aquí envolvemos TODA la app */}
-          <div className="flex flex-col min-h-screen overflow-hidden">
-            <Header />
-            {children}
-          </div>
-        </AuthProvider>
+      <body
+        className={`${inter.variable} ${architects_daughter.variable} font-inter antialiased bg-gray-900 text-gray-200 tracking-tight`}
+      >
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   )
