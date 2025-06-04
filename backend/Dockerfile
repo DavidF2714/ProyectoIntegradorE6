@@ -1,25 +1,26 @@
-FROM python:3.12-slim
+# Imagen oficial de PyTorch con CUDA (usa solo si tienes GPU y nvidia-container-runtime)
+FROM pytorch/pytorch:2.2.2-cuda11.8-cudnn8-runtime
 
-# Instalar dependencias del sistema necesarias para OpenCV y MediaPipe
+# Evitar prompts de tzdata
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Instala dependencias del sistema
 RUN apt-get update && apt-get install -y \
-    ffmpeg \
-    libsm6 \
-    libxext6 \
-    libgl1 \
-    && rm -rf /var/lib/apt/lists/*
+    ffmpeg libsm6 libxext6 libgl1 \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Crear directorio de trabajo
 WORKDIR /app
 
-# Copiar archivos del proyecto
-COPY . /app
+# Copiar e instalar dependencias
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Instalar las dependencias de Python
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+# Copiar código fuente
+COPY . .
 
-# Exponer el puerto que usa Uvicorn
+# Exponer el puerto de la API
 EXPOSE 8000
 
-# Comando para ejecutar el servidor FastAPI
+# Comando de ejecución
 CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,9 +1,0 @@
-torch
-opencv-python
-mediapipe
-numpy
-joblib
-fastapi
-uvicorn
-python-multipart
-scikit-learn

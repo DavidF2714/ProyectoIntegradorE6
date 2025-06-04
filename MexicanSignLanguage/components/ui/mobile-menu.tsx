@@ -62,22 +62,17 @@ export default function MobileMenu() {
         <ul className="bg-gray-800 px-4 py-2">
           <li>
             <Link href="#About" className="flex font-medium w-full text-purple-600 hover:text-gray-200 py-2 justify-center" onClick={() => setMobileNavOpen(false)}>
-              About
+              Acerca de
             </Link>
           </li>
           <li>
             <Link href="#Overview" className="flex font-medium w-full text-purple-600 hover:text-gray-200 py-2 justify-center" onClick={() => setMobileNavOpen(false)}>
-              Overview
-            </Link>
-          </li>
-          <li>
-            <Link href="#Symptoms" className="flex font-medium w-full text-purple-600 hover:text-gray-200 py-2 justify-center" onClick={() => setMobileNavOpen(false)}>
-              Symptoms
+              Lenguaje de Señas Mexicano
             </Link>
           </li>
           <li>
             <Link href="#predictionTool" className="flex font-medium w-full text-purple-600 hover:text-gray-200 py-2 justify-center" onClick={() => setMobileNavOpen(false)}>
-              Prediction Tool
+              Herramienta de predicción
             </Link>
           </li>
          

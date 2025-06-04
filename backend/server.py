@@ -5,11 +5,28 @@ import joblib as jl
 import mediapipe as mp
 import numpy as np
 import base64
-import io
+import os
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, WebSocket
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, HTTPException, Depends
+from pydantic import BaseModel
+from pymongo import MongoClient
+from jose import jwt, JWTError
+from datetime import datetime, timedelta
+from passlib.context import CryptContext
+
+load_dotenv()
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
+DB_NAME = os.getenv("DB_NAME", "mydatabase")
+
+client = MongoClient(MONGO_URI)
+db = client[DB_NAME]
+users_collection = db["users"]
 
 app = FastAPI()
 
@@ -91,3 +108,50 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         print(f"Error: {e}")
         await websocket.close()
+
+#auth
+fake_users_db = {}
+
+class User(BaseModel):
+    username: str
+    password: str
+
+@app.post("/signup")
+def signup(user: User):
+    if users_collection.find_one({"username": user.username}):
+        raise HTTPException(status_code=400, detail="Username already exists")
+    
+    hashed_password = hash_password(user.password)
+    users_collection.insert_one({
+        "username": user.username,
+        "password": hashed_password
+    })
+    print("User inserted with ID:", users_collection.inserted_id)
+    return {"msg": "User created successfully"}
+
+@app.post("/signin")
+def signin(user: User):
+    db_user = users_collection.find_one({"username": user.username})
+    if not db_user or not verify_password(user.password, db_user["password"]):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    token = create_access_token({"sub": user.username})
+    return {"access_token": token, "token_type": "bearer"}
+
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
+def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
