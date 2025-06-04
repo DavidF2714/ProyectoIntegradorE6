@@ -1,3 +1,4 @@
+// app/(auth)/signin/page.tsx
 'use client'
 
 import { useState } from 'react'
@@ -8,7 +9,6 @@ import axios from 'axios'
 export default function SignIn() {
   const router = useRouter()
   const [username, setUsername] = useState('')
-  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
 
@@ -34,7 +34,7 @@ export default function SignIn() {
 
           {/* Page header */}
           <div className="max-w-3xl mx-auto text-center pb-12 md:pb-20">
-            <h1 className="h1">Welcome back. We exist to make entrepreneurship easier.</h1>
+            <h1 className="h1">Bienvenido. ¡Inicia sesión!</h1>
           </div>
 
           {/* Form */}
@@ -42,12 +42,12 @@ export default function SignIn() {
             <form onSubmit={handleSubmit}>
               <div className="flex flex-wrap -mx-3 mb-4">
                 <div className="w-full px-3">
-                  <label className="block text-gray-300 text-sm font-medium mb-1" htmlFor="email">Username</label>
+                  <label className="block text-gray-300 text-sm font-medium mb-1" htmlFor="email">Usuario</label>
                   <input
                     id="username"
                     type="username"
                     className="form-input w-full text-gray-300"
-                    placeholder="USername"
+                    placeholder="Usuario"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
@@ -56,12 +56,12 @@ export default function SignIn() {
               </div>
               <div className="flex flex-wrap -mx-3 mb-4">
                 <div className="w-full px-3">
-                  <label className="block text-gray-300 text-sm font-medium mb-1" htmlFor="password">Password</label>
+                  <label className="block text-gray-300 text-sm font-medium mb-1" htmlFor="password">Contraseña</label>
                   <input
                     id="password"
                     type="password"
                     className="form-input w-full text-gray-300"
-                    placeholder="Password (at least 10 characters)"
+                    placeholder="Contraseña"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -69,17 +69,7 @@ export default function SignIn() {
                 </div>
               </div>
               {error && <p className="text-red-500 text-sm mb-2 px-3">{error}</p>}
-              <div className="flex flex-wrap -mx-3 mb-4">
-                <div className="w-full px-3">
-                  <div className="flex justify-between">
-                    <label className="flex items-center">
-                      <input type="checkbox" className="form-checkbox" />
-                      <span className="text-gray-400 ml-2">Keep me signed in</span>
-                    </label>
-                    <Link href="/reset-password" className="text-purple-600 hover:text-gray-200 transition duration-150 ease-in-out">Forgot Password?</Link>
-                  </div>
-                </div>
-              </div>
+
               <div className="flex flex-wrap -mx-3 mt-6">
                 <div className="w-full px-3">
                   <button type="submit" className="btn text-white bg-purple-600 hover:bg-purple-700 w-full">Sign in</button>
@@ -87,7 +77,7 @@ export default function SignIn() {
               </div>
             </form>
             <div className="text-gray-400 text-center mt-6">
-              Don’t you have an account? <Link href="/signup" className="text-purple-600 hover:text-gray-200 transition duration-150 ease-in-out">Sign up</Link>
+              ¿No tienes cuenta? <Link href="/signup" className="text-purple-600 hover:text-gray-200 transition duration-150 ease-in-out">Sign up</Link>
             </div>
           </div>
 

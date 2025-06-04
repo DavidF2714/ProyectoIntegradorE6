@@ -39,7 +39,7 @@ export default function Header() {
                 <Link href="#Overview" 
                   className="font-medium hover:text-gray-500 px-4 py-3 flex items-center transition duration-150 ease-in-out"
                   >
-                  Acerca de la LSM
+                  Lenguaje de Señas Mexicano
                 </Link>
               </li>
             
