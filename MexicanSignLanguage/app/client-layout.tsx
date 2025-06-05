@@ -11,7 +11,7 @@ interface ClientLayoutProps {
 export default function ClientLayout({ children }: ClientLayoutProps) {
   return (
     <AuthProvider>
-      {/* <Header /> */}
+      <Header />
       <main>{children}</main>
     </AuthProvider>
   )
