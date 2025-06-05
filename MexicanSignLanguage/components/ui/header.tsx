@@ -9,11 +9,19 @@ import { useAuth } from '@/context/AuthContext'
 export default function Header() {
   const { token, logout, loading } = useAuth()
 
+  const handleLogout = () => {
+  logout()
+  setTimeout(() => {
+    window.location.reload()
+  }, 100) // Espera pequeña para asegurar que se borre el token
+}
+
+
   // Mientras se carga el token desde localStorage, no renderiza el header
   if (loading) return null
 
   return (
-    <header className="absolute w-full z-30">
+    <header className="fixed top-0 absolute w-full z-30">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
@@ -56,7 +64,7 @@ export default function Header() {
               {token ? (
                 <li>
                   <button
-                    onClick={logout}
+                    onClick={handleLogout}
                     className="btn-sm text-white bg-red-600 hover:bg-red-700 ml-4"
                   >
                     Cerrar sesión
