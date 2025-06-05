@@ -1,13 +1,21 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
+
+interface Prediction {
+  word: string
+  word_id: string
+  images: { letter: string; image_base64: string }[]
+}
+
 
 export default function SpellingBee() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const socketRef = useRef<WebSocket | null>(null);
-  
-  // Refs para acceder a los valores actuales en el WebSocket
+
   const wordRef = useRef("");
+  const wordUUIDRef = useRef("");
   const currentIndexRef = useRef(0);
   const isPlayingRef = useRef(false);
   const lastCaptureTimeRef = useRef(0);
@@ -21,8 +29,51 @@ export default function SpellingBee() {
   const [frameSaved, setFrameSaved] = useState(false);
   const [lastCaptureTime, setLastCaptureTime] = useState(0);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [savedFrames, setSavedFrames] = useState<{ letter: string; image_base64: string }[]>([]);
+  const [predictions, setPredictions] = useState<Prediction[]>([])
 
-  // Timer solo cuando empieza el juego
+  useEffect(() => {
+    const fetchPredictions = async () => {
+      const token = localStorage.getItem("token")
+      if (!token) return
+
+      console.log("tok: ", token)
+
+      try {
+        const res = await fetch("http://localhost:8000/user_predictions/", {
+          headers: {
+             "Authorization": `Bearer ${localStorage.getItem("token") || ""}`
+          },
+        })
+
+        const data = await res.json()
+
+        console.log(data)
+
+        const enriched = await Promise.all(
+          data.predictions.map(async (pred: any) => {
+            const frameRes = await fetch(`http://localhost:8000/get_frames/${pred.word_id}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            })
+            const frameData = await frameRes.json()
+
+            return {
+              word: pred.word,
+              word_id: pred.word_id,
+              images: frameData.frames,
+            }
+          })
+        )
+
+        setPredictions(enriched)
+      } catch (err) {
+        console.error("Error loading predictions:", err)
+      }
+    }
+
+    fetchPredictions()
+  }, [])
+
   useEffect(() => {
     if (isPlaying) {
       const interval = setInterval(() => setTimer(t => t + 1), 1000);
@@ -30,28 +81,12 @@ export default function SpellingBee() {
     }
   }, [isPlaying]);
 
-  // Mantener los refs sincronizados con los estados
-  useEffect(() => {
-    wordRef.current = word;
-  }, [word]);
+  useEffect(() => { wordRef.current = word; }, [word]);
+  useEffect(() => { currentIndexRef.current = currentIndex; }, [currentIndex]);
+  useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
+  useEffect(() => { lastCaptureTimeRef.current = lastCaptureTime; }, [lastCaptureTime]);
+  useEffect(() => { isCapturingRef.current = isCapturing; }, [isCapturing]);
 
-  useEffect(() => {
-    currentIndexRef.current = currentIndex;
-  }, [currentIndex]);
-
-  useEffect(() => {
-    isPlayingRef.current = isPlaying;
-  }, [isPlaying]);
-
-  useEffect(() => {
-    lastCaptureTimeRef.current = lastCaptureTime;
-  }, [lastCaptureTime]);
-
-  useEffect(() => {
-    isCapturingRef.current = isCapturing;
-  }, [isCapturing]);
-
-  // Aviso temporal de "foto guardada"
   useEffect(() => {
     if (frameSaved) {
       const timeout = setTimeout(() => setFrameSaved(false), 2000);
@@ -67,22 +102,19 @@ export default function SpellingBee() {
 
       socketRef.current.onopen = () => {
         console.log("WebSocket conectado");
-        // Iniciar envío de frames solo después de que el WebSocket esté conectado
         startSendingFrames();
       };
 
       socketRef.current.onmessage = (event) => {
         const pred = event.data;
         setPrediction(pred);
-        
-        // Usar refs para acceder a los valores actuales
+
         const currentWord = wordRef.current;
         const currentIdx = currentIndexRef.current;
         const playing = isPlayingRef.current;
         const capturing = isCapturingRef.current;
         const lastCapture = lastCaptureTimeRef.current;
-        
-        // Verificar si la predicción coincide con la letra actual
+
         if (
           playing &&
           currentWord &&
@@ -92,28 +124,21 @@ export default function SpellingBee() {
           !capturing
         ) {
           const now = Date.now();
-          // Esperar al menos 2 segundos entre capturas
           if (now - lastCapture > 2000) {
             const matchedLetter = currentWord[currentIdx];
-            
-            // Marcar que estamos capturando para evitar capturas múltiples
             setIsCapturing(true);
             setLastCaptureTime(now);
-            
-            // Esperar 1 segundo antes de capturar para estabilizar la pose
+
             setTimeout(() => {
               captureAndSaveFrame(matchedLetter);
-              
-              // Avanzar al siguiente índice después de la captura
+
               const nextIndex = currentIdx + 1;
               setCurrentIndex(nextIndex);
-              
-              // Si completamos la palabra, detener el juego
+
               if (nextIndex === currentWord.length) {
                 setIsPlaying(false);
               }
-              
-              // Permitir nuevas capturas después de 1 segundo adicional
+
               setTimeout(() => {
                 setIsCapturing(false);
               }, 1000);
@@ -122,13 +147,8 @@ export default function SpellingBee() {
         }
       };
 
-      socketRef.current.onerror = (error) => {
-        console.error("Error en WebSocket:", error);
-      };
-
-      socketRef.current.onclose = () => {
-        console.log("WebSocket desconectado");
-      };
+      socketRef.current.onerror = (error) => console.error("Error en WebSocket:", error);
+      socketRef.current.onclose = () => console.log("WebSocket desconectado");
     };
 
     const startSendingFrames = async () => {
@@ -147,16 +167,14 @@ export default function SpellingBee() {
             !ctx ||
             !socketRef.current ||
             socketRef.current.readyState !== WebSocket.OPEN
-          ) {
-            return;
-          }
+          ) return;
 
           canvas.width = videoRef.current.videoWidth;
           canvas.height = videoRef.current.videoHeight;
           ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
 
           canvas.toBlob((blob) => {
-            if (blob && socketRef.current?.readyState === WebSocket.OPEN) {
+            if (blob) {
               const reader = new FileReader();
               reader.onloadend = () => {
                 if (socketRef.current?.readyState === WebSocket.OPEN) {
@@ -175,12 +193,10 @@ export default function SpellingBee() {
     initWebSocket();
 
     return () => {
-      if (sendFramesInterval) {
-        clearInterval(sendFramesInterval);
-      }
+      if (sendFramesInterval) clearInterval(sendFramesInterval);
       socketRef.current?.close();
     };
-  }, []); // Removemos todas las dependencias para que solo se ejecute una vez
+  }, []);
 
   const startSpelling = () => {
     setIsPlaying(true);
@@ -188,11 +204,11 @@ export default function SpellingBee() {
     setTimer(0);
     setPrediction("Esperando...");
     setFrameSaved(false);
+    wordUUIDRef.current = uuidv4();
+    setSavedFrames([]);
   };
 
-  const stopSpelling = () => {
-    setIsPlaying(false);
-  };
+  const stopSpelling = () => setIsPlaying(false);
 
   const resetGame = () => {
     setIsPlaying(false);
@@ -203,6 +219,7 @@ export default function SpellingBee() {
     setWord("");
     setLastCaptureTime(0);
     setIsCapturing(false);
+    setSavedFrames([]);
   };
 
   const captureAndSaveFrame = async (letter: string) => {
@@ -218,6 +235,7 @@ export default function SpellingBee() {
 
     const form = new FormData();
     form.append("file", blob, "frame.jpg");
+    form.append("word_id", wordUUIDRef.current);
 
     try {
       await fetch(`http://localhost:8000/save_frame/${letter}`, {
@@ -233,8 +251,52 @@ export default function SpellingBee() {
     }
   };
 
+  async function getSpelledWord(wordId: string, token: string) {
+    const res = await fetch(`http://localhost:8000/get_frames/${wordId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+    return data.frames;
+  }
+
+  useEffect(() => {
+  if (!isPlaying && word && currentIndex === word.length) {
+    const token = localStorage.getItem("token") || "";
+
+    const timeout = setTimeout(() => {
+      getSpelledWord(wordUUIDRef.current, token)
+        .then(frames => {
+          setSavedFrames(frames);
+
+          // 👉 Create FormData instead of JSON
+          const form = new FormData();
+          form.append("word", wordRef.current);
+          form.append("word_id", wordUUIDRef.current);
+
+          fetch("http://localhost:8000/save_prediction/", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${token}`,
+            },
+            body: form,
+          }).catch(err =>
+            console.error("Error saving prediction record:", err)
+          );
+        })
+        .catch(err => console.error("Error al obtener imágenes guardadas:", err));
+    }, 1000);
+
+    return () => clearTimeout(timeout);
+  }
+}, [isPlaying, currentIndex, word]);
+
+
+
   return (
-    <div className="flex flex-col items-center p-4- mt-20">
+    <div className="flex flex-col items-center p-4 mt-20">
       <input
         type="text"
         value={word}
@@ -283,7 +345,6 @@ export default function SpellingBee() {
         ))}
       </div>
 
-      {/* Mostrar progreso */}
       {word && (
         <div className="mt-2 text-sm text-gray-600">
           Progreso: {currentIndex}/{word.length} letras
@@ -324,7 +385,6 @@ export default function SpellingBee() {
         </strong>
       </div>
 
-      {/* Mostrar letra actual que se busca */}
       {isPlaying && word && currentIndex < word.length && (
         <div className="mt-2 text-lg">
           Buscando letra: <strong className="text-yellow-600">{word[currentIndex].toUpperCase()}</strong>
@@ -341,6 +401,49 @@ export default function SpellingBee() {
       )}
 
       <div className="mt-2">⏱ Tiempo: {timer} s</div>
+
+      {(savedFrames?.length ?? 0) > 0 && (
+        <div className="mt-6">
+          <h2 className="text-xl font-bold mb-2 text-green-700">
+            Palabra completada: <span className="underline">{word.toUpperCase()}</span>
+          </h2>
+          <h3 className="text-lg font-semibold mb-2">🖼️ Imágenes capturadas:</h3>
+          <div className="grid grid-cols-3 gap-4">
+            {savedFrames.map((frame, idx) => (
+              <div key={idx} className="text-center">
+                <img
+                  src={`data:image/jpeg;base64,${frame.image_base64}`}
+                  alt={`Letra ${frame.letter}`}
+                  className="w-32 h-32 object-cover rounded border"
+                />
+                <div className="mt-1 text-sm">{frame.letter.toUpperCase()}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+
+      <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Historial de Palabras</h1>
+      {predictions.map((p, i) => (
+        <div key={i} className="mb-8 border p-4 rounded shadow">
+          <h2 className="text-xl font-semibold text-purple-600">{p.word.toUpperCase()}</h2>
+          <div className="grid grid-cols-3 gap-4 mt-2">
+            {p.images.map((img, idx) => (
+              <div key={idx} className="text-center">
+                <img
+                  src={`data:image/jpeg;base64,${img.image_base64}`}
+                  alt={`Letra ${img.letter}`}
+                  className="w-32 h-32 object-cover rounded border"
+                />
+                <div className="mt-1 text-sm">{img.letter.toUpperCase()}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
     </div>
   );
 }

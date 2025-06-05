@@ -8,7 +8,7 @@ import base64
 import os
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, WebSocket, UploadFile, File, Security
+from fastapi import FastAPI, WebSocket, UploadFile, File, Form
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException, Depends
@@ -24,6 +24,7 @@ load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://172.16.30.147:27017/")
 DB_NAME = os.getenv("DB_NAME", "mydatabase")
+
 
 client = MongoClient(MONGO_URI)
 db = client[DB_NAME]
@@ -177,15 +178,20 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
 @app.post("/save_frame/{letter}")
 async def save_frame(
     letter: str,
+    word_id: str = Form(...),
     file: UploadFile = File(...),
     username: str = Depends(get_current_user)
 ):
     contents = await file.read()
     encoded_image = base64.b64encode(contents).decode("utf-8")
 
+
+    print("received word id: ", word_id)
+
     frame_doc = {
         "username": username,
         "letter": letter,
+        "word_id": word_id,
         "timestamp": datetime.utcnow(),
         "image_base64": encoded_image
     }
@@ -194,3 +200,41 @@ async def save_frame(
 
     return {"message": "Frame saved to MongoDB", "letter": letter}
 
+
+@app.get("/get_frames/{word_id}")
+async def get_frames(word_id: str, token: str = Depends(get_current_user)):
+    try:
+        # frames_collection is a pymongo collection (sync)
+        frames_cursor = db["frames"].find({"word_id": word_id}).sort("timestamp", 1)
+
+        frames = []
+        for doc in frames_cursor:
+            frames.append({
+                "letter": doc["letter"],
+                "image_base64": doc["image_base64"],
+            })
+        return {"frames": frames}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/save_prediction")
+def save_prediction(word:str=Form(...), word_id: str = Form(...), username: str = Depends(get_current_user)):
+    db["predictions"].insert_one({
+        "username": username,
+        "word": word,
+        "word_id": word_id
+    })
+    return {"status": "success"}
+
+
+@app.get("/user_predictions")
+def get_user_predictions(username: str = Depends(get_current_user)):
+    # Fix typo in collection name
+    predictions = list(db["predictions"].find({"username": username}))
+    
+    for p in predictions:
+        p["_id"] = str(p["_id"])  # Convert ObjectId to str
+
+    return {"predictions": predictions}
