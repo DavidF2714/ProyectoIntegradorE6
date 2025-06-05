@@ -1,5 +1,9 @@
 import base64
-from fastapi import FastAPI, WebSocket, UploadFile, File, Depends, HTTPException
+import os
+
+from dotenv import load_dotenv
+from fastapi import FastAPI, WebSocket, UploadFile, File, Form, Depends, HTTPException
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -8,8 +12,17 @@ from utils.image import decode_base64_image
 from auth.utils import hash_password, verify_password, create_access_token, get_current_user
 from db.mongo import db, users_collection
 from db.logs import log_event
-
 from datetime import datetime
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://172.16.30.147:27017/")
+DB_NAME = os.getenv("DB_NAME", "mydatabase")
+
+
+client = MongoClient(MONGO_URI)
+db = client[DB_NAME]
+users_collection = db["users"]
+
 
 app = FastAPI()
 
@@ -64,21 +77,66 @@ async def websocket_endpoint(websocket: WebSocket):
 @app.post("/save_frame/{letter}")
 async def save_frame(
     letter: str,
+    word_id: str = Form(...),
     file: UploadFile = File(...),
     username: str = Depends(get_current_user)
 ):
     contents = await file.read()
     encoded_image = base64.b64encode(contents).decode("utf-8")
 
+
+    print("received word id: ", word_id)
+
     frame_doc = {
         "username": username,
         "letter": letter,
+        "word_id": word_id,
         "timestamp": datetime.utcnow(),
         "image_base64": encoded_image
     }
 
     db["frames"].insert_one(frame_doc)
     return {"message": "Frame saved to MongoDB", "letter": letter}
+
+
+@app.get("/get_frames/{word_id}")
+async def get_frames(word_id: str, token: str = Depends(get_current_user)):
+    try:
+        # frames_collection is a pymongo collection (sync)
+        frames_cursor = db["frames"].find({"word_id": word_id}).sort("timestamp", 1)
+
+        frames = []
+        for doc in frames_cursor:
+            frames.append({
+                "letter": doc["letter"],
+                "image_base64": doc["image_base64"],
+            })
+        return {"frames": frames}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/save_prediction")
+def save_prediction(word:str=Form(...), word_id: str = Form(...), username: str = Depends(get_current_user)):
+    db["predictions"].insert_one({
+        "username": username,
+        "word": word,
+        "word_id": word_id
+    })
+    return {"status": "success"}
+
+
+@app.get("/user_predictions")
+def get_user_predictions(username: str = Depends(get_current_user)):
+    # Fix typo in collection name
+    predictions = list(db["predictions"].find({"username": username}))
+    
+    for p in predictions:
+        p["_id"] = str(p["_id"])  # Convert ObjectId to str
+
+    return {"predictions": predictions}
+
 
 @app.post("/signup")
 def signup(user: User):

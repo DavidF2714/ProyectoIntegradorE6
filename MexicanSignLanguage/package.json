@@ -24,7 +24,7 @@
     "react-router-dom": "^7.6.1",
     "react-webcam": "^7.2.0",
     "typescript": "^5.3.3",
-    "uuid": "^11.0.3"
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.7",
