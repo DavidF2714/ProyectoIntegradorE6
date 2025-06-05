@@ -67,9 +67,9 @@ return (
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      height: "40vh",
-      paddingBottom: "40vh",
-      paddingTop: "20vh"
+      height: "1020px",
+      paddingBottom: "300px",
+      paddingTop: "300px"
     }}
   >
 
