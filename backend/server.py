@@ -8,7 +8,7 @@ import base64
 import os
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, UploadFile, File, Security
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException, Depends
@@ -17,6 +17,7 @@ from pymongo import MongoClient
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
 from passlib.context import CryptContext
+from fastapi.security import OAuth2PasswordBearer
 
 load_dotenv()
 
@@ -69,7 +70,7 @@ model.eval()
 label_encoder = jl.load("LSM-V2/label_encoder.pkl")
 
 mp_hands = mp.solutions.hands
-hand = mp_hands.Hands(static_image_mode=False, max_num_hands=1, min_detection_confidence=0.7)
+hand = mp_hands.Hands(static_image_mode=False, max_num_hands=1, min_detection_confidence=0.5)
 
 def predict_landmarks(landmark_vector):
     x = torch.tensor(landmark_vector, dtype=torch.float32).unsqueeze(0).to(device)
@@ -92,6 +93,7 @@ async def websocket_endpoint(websocket: WebSocket):
             data = await websocket.receive_text()
             if data.startswith("data:image"):
                 image = decode_base64_image(data)
+                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 results = hand.process(image)
 
                 if results.multi_hand_landmarks:
@@ -122,11 +124,11 @@ def signup(user: User):
         raise HTTPException(status_code=400, detail="Username already exists")
     
     hashed_password = hash_password(user.password)
-    users_collection.insert_one({
+    result = users_collection.insert_one({
         "username": user.username,
         "password": hashed_password
     })
-    print("User inserted with ID:", users_collection.inserted_id)
+    print("User inserted with ID:", result.inserted_id)
     return {"msg": "User created successfully"}
 
 @app.post("/signin")
@@ -155,3 +157,40 @@ def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="signin")
+
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(
+        status_code=401,
+        detail="Could not validate credentials",
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+        return username
+    except JWTError:
+        raise credentials_exception
+    
+@app.post("/save_frame/{letter}")
+async def save_frame(
+    letter: str,
+    file: UploadFile = File(...),
+    username: str = Depends(get_current_user)
+):
+    contents = await file.read()
+    encoded_image = base64.b64encode(contents).decode("utf-8")
+
+    frame_doc = {
+        "username": username,
+        "letter": letter,
+        "timestamp": datetime.utcnow(),
+        "image_base64": encoded_image
+    }
+
+    db["frames"].insert_one(frame_doc)
+
+    return {"message": "Frame saved to MongoDB", "letter": letter}
+

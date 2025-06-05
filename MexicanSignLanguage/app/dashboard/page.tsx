@@ -33,7 +33,6 @@ export default function Dashboard() {
   return (
     <>
       <MainHeader />
-      <MainHeader />
       <About />
       <Overview />
       <PredictionTool />
