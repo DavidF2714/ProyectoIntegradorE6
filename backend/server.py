@@ -1,88 +1,37 @@
-import torch 
-import torch.nn as nn
-import cv2
-import joblib as jl
-import mediapipe as mp
-import numpy as np
 import base64
-import os
-
-from dotenv import load_dotenv
-from fastapi import FastAPI, WebSocket, UploadFile, File, Security
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, WebSocket, UploadFile, File, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
-from pymongo import MongoClient
-from jose import jwt, JWTError
-from datetime import datetime, timedelta
-from passlib.context import CryptContext
-from fastapi.security import OAuth2PasswordBearer
 
-load_dotenv()
+from model.predictor import gesture_model, hand, mp
+from utils.image import decode_base64_image
+from auth.utils import hash_password, verify_password, create_access_token, get_current_user
+from db.mongo import db, users_collection
+from db.logs import log_event
 
-SECRET_KEY = os.getenv("SECRET_KEY")
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://172.16.30.147:27017/")
-DB_NAME = os.getenv("DB_NAME", "mydatabase")
-
-client = MongoClient(MONGO_URI)
-db = client[DB_NAME]
-users_collection = db["users"]
+from datetime import datetime
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for simplicity; adjust as needed
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],  # Allow all methods
-    allow_headers=["*"],  # Allow all headers
-    # expose_headers=["*"],  # Expose all headers
-    # max_age=3600,  # Cache preflight response for 1 hour
-    # allow_origin_regex="https?://.*"  # Allow any origin that starts with http or https
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# Model
-model = nn.Sequential(
-    nn.Linear(63, 512),
-    nn.BatchNorm1d(512),
-    nn.ReLU(),
-    nn.Dropout(0.3),
+class User(BaseModel):
+    username: str
+    password: str
 
-    nn.Linear(512, 256),
-    nn.BatchNorm1d(256),
-    nn.ReLU(),
-    nn.Dropout(0.3),
-
-    nn.Linear(256, 128),
-    nn.BatchNorm1d(128),
-    nn.ReLU(),
-
-    nn.Linear(128, 26)
-)
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model.load_state_dict(
-    torch.load("LSM-V2/hand_landmarks_modelv2.pt", map_location=device)
-)
-model = model.to(device)
-model.eval()
-label_encoder = jl.load("LSM-V2/label_encoder.pkl")
-
-mp_hands = mp.solutions.hands
-hand = mp_hands.Hands(static_image_mode=False, max_num_hands=1, min_detection_confidence=0.5)
-
-def predict_landmarks(landmark_vector):
-    x = torch.tensor(landmark_vector, dtype=torch.float32).unsqueeze(0).to(device)
-    logits = model(x)
-    pred = torch.argmax(logits, dim=1).item()
-    return str(label_encoder.inverse_transform([pred])[0])
-
-def decode_base64_image(data):
-    image_data = base64.b64decode(data.split(",")[1])  # Split to remove the metadata part
-    np_arr = np.frombuffer(image_data, np.uint8)
-    image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-    return image
+@app.on_event("startup")
+def test_mongo_connection():
+    try:
+        db.command("ping")
+        print("[✓] MongoDB conectado correctamente")
+    except Exception as e:
+        print(f"[✗] Error de conexión con MongoDB: {e}")
 
 
 @app.websocket("/ws")
@@ -93,15 +42,16 @@ async def websocket_endpoint(websocket: WebSocket):
             data = await websocket.receive_text()
             if data.startswith("data:image"):
                 image = decode_base64_image(data)
-                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 results = hand.process(image)
 
                 if results.multi_hand_landmarks:
                     for hand_landmarks in results.multi_hand_landmarks:
-                        landmark_vector = []
-                        for landmark in hand_landmarks.landmark:
-                            landmark_vector.extend([landmark.x, landmark.y, landmark.z])
-                        prediction = predict_landmarks(landmark_vector)
+                        landmark_vector = [
+                            coord
+                            for lm in hand_landmarks.landmark
+                            for coord in (lm.x, lm.y, lm.z)
+                        ]
+                        prediction = gesture_model.predict(landmark_vector)
                         await websocket.send_text(prediction)
                 else:
                     await websocket.send_text("No hand detected")
@@ -111,69 +61,6 @@ async def websocket_endpoint(websocket: WebSocket):
         print(f"Error: {e}")
         await websocket.close()
 
-#auth
-fake_users_db = {}
-
-class User(BaseModel):
-    username: str
-    password: str
-
-@app.post("/signup")
-def signup(user: User):
-    if users_collection.find_one({"username": user.username}):
-        raise HTTPException(status_code=400, detail="Username already exists")
-    
-    hashed_password = hash_password(user.password)
-    result = users_collection.insert_one({
-        "username": user.username,
-        "password": hashed_password
-    })
-    print("User inserted with ID:", result.inserted_id)
-    return {"msg": "User created successfully"}
-
-@app.post("/signin")
-def signin(user: User):
-    db_user = users_collection.find_one({"username": user.username})
-    if not db_user or not verify_password(user.password, db_user["password"]):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    
-    token = create_access_token({"sub": user.username})
-    return {"access_token": token, "token_type": "bearer"}
-
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-
-def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
-
-def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
-    to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="signin")
-
-def get_current_user(token: str = Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(
-        status_code=401,
-        detail="Could not validate credentials",
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise credentials_exception
-        return username
-    except JWTError:
-        raise credentials_exception
-    
 @app.post("/save_frame/{letter}")
 async def save_frame(
     letter: str,
@@ -191,6 +78,34 @@ async def save_frame(
     }
 
     db["frames"].insert_one(frame_doc)
-
     return {"message": "Frame saved to MongoDB", "letter": letter}
 
+@app.post("/signup")
+def signup(user: User):
+    if users_collection.find_one({"username": user.username}):
+        raise HTTPException(status_code=400, detail="Username already exists")
+    
+    hashed_password = hash_password(user.password)
+    users_collection.insert_one({
+        "username": user.username,
+        "password": hashed_password
+    })
+    
+    log_event(user.username, "signup")
+    return {"msg": "User created successfully"}
+
+@app.post("/signin")
+def signin(user: User):
+    db_user = users_collection.find_one({"username": user.username})
+    
+    if not db_user:
+        log_event(user.username, "failed_signin", {"reason": "user not found"})
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    if not verify_password(user.password, db_user["password"]):
+        log_event(user.username, "failed_signin", {"reason": "wrong password"})
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    token = create_access_token({"sub": user.username})
+    log_event(user.username, "signin")
+    return {"access_token": token, "token_type": "bearer"}
