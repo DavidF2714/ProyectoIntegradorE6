@@ -22,7 +22,7 @@ from fastapi.security import OAuth2PasswordBearer
 load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://172.16.30.147:27017/")
 DB_NAME = os.getenv("DB_NAME", "mydatabase")
 
 client = MongoClient(MONGO_URI)
