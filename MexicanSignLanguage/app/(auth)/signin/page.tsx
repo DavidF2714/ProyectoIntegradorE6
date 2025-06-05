@@ -26,11 +26,15 @@ const handleSubmit = async (e: React.FormEvent) => {
     login(res.data.access_token) // Setea el token en el contexto
 
     console.log('Token seteado, redirigiendo...')
-    router.push('/spellTool')
+
     // Espera un ciclo de render antes de redirigir
     setTimeout(() => {
-       window.location.reload()
+      window.location.reload()
     }, 100)
+    // Espera que el contexto se actualice
+    setTimeout(() => {
+      router.push('/spellTool')
+    }, 50)
     
   } catch (err: any) {
     setError('Credenciales inválidas')
