@@ -8,7 +8,7 @@
   <p id="output">Esperando...</p>
 
   <script>
-    const socket = new WebSocket("ws://localhost:8000/ws");
+    const socket = new WebSocket("ws://172.16.30.26:8000/ws");
 
     socket.onmessage = (event) => {
       document.getElementById("output").innerText = "Predicción: " + event.data;
