@@ -6,6 +6,7 @@ from fastapi import FastAPI, WebSocket, UploadFile, File, Form, Depends, HTTPExc
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from pymongo import MongoClient
 
 from model.predictor import gesture_model, hand, mp
 from utils.image import decode_base64_image
