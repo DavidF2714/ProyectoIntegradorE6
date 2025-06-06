@@ -98,7 +98,7 @@ export default function SpellingBee() {
     let sendFramesInterval: NodeJS.Timeout | null = null;
 
     const initWebSocket = () => {
-      socketRef.current = new WebSocket("ws://localhost:8001/ws");
+      socketRef.current = new WebSocket("ws://localhost:8000/ws");
 
       socketRef.current.onopen = () => {
         console.log("WebSocket conectado");
@@ -326,6 +326,7 @@ export default function SpellingBee() {
         >
           Reiniciar
         </button>
+        
       </div>
 
       <div className="mt-4 flex space-x-2">

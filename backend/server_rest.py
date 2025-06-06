@@ -1,6 +1,7 @@
 import base64
+import websockets
 
-from fastapi import FastAPI, UploadFile, File, Form, Depends, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, Depends, HTTPException, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -17,7 +18,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  #FRONTEND_URL
+    allow_origins=["*"],  #FRONTEND_URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -134,3 +135,16 @@ async def predict(file: UploadFile = File(...), username: str = Depends(get_curr
     encoded_image = base64.b64encode(contents).decode("utf-8")
     prediction = await send_to_model(encoded_image)
     return {"prediction": prediction}
+
+@app.websocket("/ws")
+async def websocket_proxy(websocket: WebSocket):
+    await websocket.accept()
+    async with websockets.connect("ws://localhost:8001/ws") as back2_ws:
+        try:
+            while True:
+                msg = await websocket.receive_text()
+                await back2_ws.send(msg)
+                response = await back2_ws.recv()
+                await websocket.send_text(response)
+        except Exception as e:
+            await websocket.close()
