@@ -139,7 +139,7 @@ async def predict(file: UploadFile = File(...), username: str = Depends(get_curr
 @app.websocket("/ws")
 async def websocket_proxy(websocket: WebSocket):
     await websocket.accept()
-    async with websockets.connect("ws://localhost:8001/ws") as back2_ws:
+    async with websockets.connect("ws://10.49.12.48:3002/ws") as back2_ws:
         try:
             while True:
                 msg = await websocket.receive_text()
