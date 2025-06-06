@@ -40,7 +40,7 @@ export default function SpellingBee() {
       console.log("tok: ", token)
 
       try {
-        const res = await fetch("http://172.16.30.3:3002/user_predictions/", {
+        const res = await fetch("http://localhost:8000/user_predictions/", {
           headers: {
              "Authorization": `Bearer ${localStorage.getItem("token") || ""}`
           },
@@ -52,7 +52,7 @@ export default function SpellingBee() {
 
         const enriched = await Promise.all(
           data.predictions.map(async (pred: any) => {
-            const frameRes = await fetch(`http://172.16.30.3:3002/get_frames/${pred.word_id}`, {
+            const frameRes = await fetch(`http://localhost:8000/get_frames/${pred.word_id}`, {
               headers: { Authorization: `Bearer ${token}` },
             })
             const frameData = await frameRes.json()
@@ -98,7 +98,7 @@ export default function SpellingBee() {
     let sendFramesInterval: NodeJS.Timeout | null = null;
 
     const initWebSocket = () => {
-      socketRef.current = new WebSocket("ws://172.16.30.3:3002/ws");
+      socketRef.current = new WebSocket("ws://localhost:8000/ws");
 
       socketRef.current.onopen = () => {
         console.log("WebSocket conectado");
@@ -238,7 +238,7 @@ export default function SpellingBee() {
     form.append("word_id", wordUUIDRef.current);
 
     try {
-      await fetch(`http://172.16.30.3:3002/save_frame/${letter}`, {
+      await fetch(`http://localhost:8000/save_frame/${letter}`, {
         method: "POST",
         body: form,
         headers: {
@@ -252,7 +252,7 @@ export default function SpellingBee() {
   };
 
   async function getSpelledWord(wordId: string, token: string) {
-    const res = await fetch(`http://172.16.30.3:3002/get_frames/${wordId}`, {
+    const res = await fetch(`http://localhost:8000/get_frames/${wordId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -276,7 +276,7 @@ export default function SpellingBee() {
           form.append("word", wordRef.current);
           form.append("word_id", wordUUIDRef.current);
 
-          fetch("http://172.16.30.3:3002/save_prediction/", {
+          fetch("http://localhost:8000/save_prediction/", {
             method: "POST",
             headers: {
               "Authorization": `Bearer ${token}`,
@@ -326,6 +326,7 @@ export default function SpellingBee() {
         >
           Reiniciar
         </button>
+        
       </div>
 
       <div className="mt-4 flex space-x-2">

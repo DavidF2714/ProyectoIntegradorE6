@@ -1,0 +1,15 @@
+# Core FastAPI backend dependencies
+fastapi==0.110.0
+uvicorn[standard]==0.29.0
+
+
+# WebSockets
+websockets
+
+
+# ML & AI
+scikit-learn
+opencv-python-headless==4.9.0.80
+mediapipe
+joblib==1.3.2
+torch
