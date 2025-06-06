@@ -19,10 +19,10 @@ export default function MainHeader() {
         </div>
 
         {/* Hero content */}
-        <div className="relative pt-32 pb-10 md:pt-40 md:pb-16">
+        <div className="relative pt-32 pb-10 md:pt-40 md:pb-2">
 
           {/* Section header */}
-          <div className="max-w-3xl mx-auto text-center pb-12 md:pb-16">
+          <div className="max-w-3xl mx-auto text-center pb-12 md:pb-2">
             <h1 className="h1 mb-4" data-aos="fade-up">Intérprete de Lengua de Señas Mexicana (LSM)</h1>
             <p className="text-xl text-gray-400 mb-8" data-aos="fade-up" data-aos-delay="200">Empoderando la inclusión con el uso de Machine Learning.</p>
           </div>

@@ -8,6 +8,8 @@ export default function SignUp() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+
 
   const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault()
@@ -39,8 +41,12 @@ export default function SignUp() {
     }
 
     // Signup exitoso, puedes redirigir o mostrar mensaje
-    alert('Signup exitoso! Ya puedes hacer sign in.')
-    window.location.href = '/signin' // o usa router.push('/signin') si usas useRouter
+    setSuccess('Usuario registrado con éxito. Redirigiendo a inicio de sesión...')
+    setTimeout(() => {
+      window.location.href = '/signin'
+    }, 1500)
+
+    //window.location.href = '/signin' // o usa router.push('/signin') si usas useRouter
   } catch (err) {
     setError('Algo salió. Por favor vuelva a intentarlo.')
   }
@@ -56,6 +62,14 @@ export default function SignUp() {
           </div>
 
           <div className="max-w-sm mx-auto">
+
+            {success && (
+              <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+                <strong className="font-bold">Éxito: </strong>
+                <span className="block sm:inline">{success}</span>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit}>
               <div className="flex flex-wrap -mx-3 mb-4">
                 <div className="w-full px-3">

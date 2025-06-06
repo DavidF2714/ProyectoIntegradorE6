@@ -68,9 +68,9 @@ return (
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      height: "1020px",
-      paddingBottom: "300px",
-      paddingTop: "300px"
+      height: "920px",
+      paddingBottom: "100px",
+      paddingTop: "100px"
     }}
   >
 
@@ -89,7 +89,7 @@ return (
         autoPlay
         muted
         playsInline
-        width={1090}
+        width={910}
         style={{
           borderRadius: "10px",
           display: "block",
@@ -97,7 +97,7 @@ return (
         }}
       />
     </div>
-        <h2 style={{ fontSize: "1.9rem", marginTop: "0.8rem", fontWeight:"bold" }}>
+        <h2 style={{ fontSize: "1.9rem", marginTop: "2.5rem", fontWeight:"bold" }}>
           Letra: <span style={{ color: "#5d5dff" }}>{prediction}</span>
         </h2>
   </div>
