@@ -13,6 +13,9 @@ from ws.ws_client import send_to_model
 
 from fastapi import FastAPI
 
+import os
+import websockets
+
 
 app = FastAPI()
 
@@ -136,10 +139,13 @@ async def predict(file: UploadFile = File(...), username: str = Depends(get_curr
     prediction = await send_to_model(encoded_image)
     return {"prediction": prediction}
 
+MODEL_WS_URL = os.getenv("MODEL_WS_URL", "ws://localhost:8001/ws")
+
+
 @app.websocket("/ws")
 async def websocket_proxy(websocket: WebSocket):
     await websocket.accept()
-    async with websockets.connect("ws://localhost:8001/ws") as back2_ws:
+    async with websockets.connect(MODEL_WS_URL) as back2_ws:
         try:
             while True:
                 msg = await websocket.receive_text()
@@ -147,4 +153,7 @@ async def websocket_proxy(websocket: WebSocket):
                 response = await back2_ws.recv()
                 await websocket.send_text(response)
         except Exception as e:
-            await websocket.close()
+            print(f"[Proxy error] {e}")
+        finally:
+            if websocket.client_state.name != "DISCONNECTED":
+                await websocket.close()
