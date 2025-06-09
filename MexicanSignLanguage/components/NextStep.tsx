@@ -99,7 +99,6 @@ export default function SpellingBee() {
 
     const initWebSocket = () => {
       socketRef.current = new WebSocket("wss://localhost:8000/ws");
-
       socketRef.current.onopen = () => {
         console.log("WebSocket conectado");
         startSendingFrames();
@@ -274,7 +273,6 @@ export default function SpellingBee() {
           const form = new FormData();
           form.append("word", wordRef.current);
           form.append("word_id", wordUUIDRef.current);
-
           fetch("https://localhost:8000/save_prediction/", {
             method: "POST",
             headers: {

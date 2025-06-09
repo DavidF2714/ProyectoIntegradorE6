@@ -9,7 +9,6 @@ export default function HandPredictor() {
 
   useEffect(() => {
     socketRef.current = new WebSocket("wss://localhost:8000/ws");
-
     socketRef.current.onmessage = (event) => {
       setPrediction(event.data);
     };
