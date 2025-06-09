@@ -1,14 +1,22 @@
-FROM node:20-alpine
+FROM nginx:alpine
 
-WORKDIR /app
+# Crear directorio para certificados
+RUN mkdir -p /etc/nginx/certs
 
-COPY package*.json ./
-RUN npm install
+# Instalar openssl y generar certificado autofirmado
+RUN apk add --no-cache openssl && \
+    openssl req -x509 -newkey rsa:2048 -nodes \
+    -keyout /etc/nginx/certs/key.pem \
+    -out /etc/nginx/certs/cert.pem \
+    -days 365 \
+    -subj "/CN=localhost" \
+    -addext "subjectAltName=DNS:localhost"
 
-COPY . .
+# Copiar archivos del frontend exportado
+COPY out/ /usr/share/nginx/html/
 
-RUN npm run build
+# Copiar configuración nginx
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 1337
-
-CMD ["npm", "run", "start"]
+EXPOSE 443
+CMD ["nginx", "-g", "daemon off;"]

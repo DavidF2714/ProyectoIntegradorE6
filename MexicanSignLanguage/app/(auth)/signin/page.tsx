@@ -17,7 +17,7 @@ export default function SignIn() {
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault()
   try {
-    const res = await axios.post('http://172.16.30.26:8000/signin', {
+    const res = await axios.post('https://localhost:8000/signin', {
       username,
       password,
     })
