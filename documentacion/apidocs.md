@@ -6,9 +6,9 @@ Esta API proporciona los servicios necesarios para la autenticación de usuarios
 
 La API está diseñada para ser utilizada en sistemas que integran interfaces de lenguaje de señas con inteligencia artificial, ofreciendo endpoints RESTful sobre HTTP para una fácil integración.
 
-## Autentcación
+## Autenticación
 
-En esta sección se describen los endpoints directamente relacionados con la autenticación de los usuarios. Consstan de signin y signup.
+En esta sección se describen los endpoints directamente relacionados con la autenticación de los usuarios. Constan de signin y signup.
 
 **Endpoint:**
 `POST http://172.16.30.147:27017//signup`
